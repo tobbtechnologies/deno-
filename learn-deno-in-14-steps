@@ -1,0 +1,154 @@
+Learn Deno in 14 Steps 
+
+//1. import
+
+import { Application, Router } from 'https://deno.land/x/oak/mod.ts'
+
+//2. port
+const env = Deno.env.toObject()
+const PORT = env.PORT || 4000
+const HOST = env.HOST || '127.0.0.1'
+
+//3. router
+const router = new Router()
+
+//4. deno app new instance
+const app = new Application()
+
+//5.deno settings
+app.use(router.routes())
+app.use(router.allowedMethods())
+
+console.log(`Listening on port ${PORT}...`)
+
+//6. deno global async feature
+await app.listen(`${HOST}:${PORT}`)
+
+//7. deno requests permissions
+deno run --allow-env --allow-net app.ts
+
+//8. sample backend objects
+interface Dog {
+  name: string
+  age: number
+}
+
+// 9. data
+let dogs: Array<Dog> = [
+  {
+    name: 'Roger',
+    age: 8,
+  },
+  {
+    name: 'Syd',
+    age: 7,
+  },
+]
+
+//10. router instance
+const router = new Router()
+
+router
+  .get('/dogs', getDogs)
+  .get('/dogs/:name', getDog)
+  .post('/dogs', addDog)
+  .put('/dogs/:name', updateDog)
+  .delete('/dogs/:name', removeDog)
+  
+  export const getDogs = ({ response }: { response: any }) => {
+  response.body = dogs
+}
+
+//11 GET - API get a dogs
+export const getDog = ({
+  params,
+  response,
+}: {
+  params: {
+    name: string
+  }
+  response: any
+}) => {
+  const dog = dogs.filter((dog) => dog.name === params.name)
+  if (dog.length) {
+    response.status = 200
+    response.body = dog[0]
+    return
+  }
+
+  response.status = 400
+  response.body = { msg: `Cannot find dog ${params.name}` }
+}
+
+//12. PUT - API a dog
+
+export const addDog = async ({
+  request,
+  response,
+}: {
+  request: any
+  response: any
+}) => {
+  const body = await request.body()
+  const dog: Dog = body.value
+  dogs.push(dog)
+
+  response.body = { msg: 'OK' }
+  response.status = 200
+}
+
+//13. UPDATE - API
+
+export const updateDog = async ({
+  params,
+  request,
+  response,
+}: {
+  params: {
+    name: string
+  }
+  request: any
+  response: any
+}) => {
+  const temp = dogs.filter((existingDog) => existingDog.name === params.name)
+  const body = await request.body()
+  const { age }: { age: number } = body.value
+
+  if (temp.length) {
+    temp[0].age = age
+    response.status = 200
+    response.body = { msg: 'OK' }
+    return
+  }
+
+  response.status = 400
+  response.body = { msg: `Cannot find dog ${params.name}` }
+}
+
+//14. DELETE - API
+
+export const removeDog = ({
+  params,
+  response,
+}: {
+  params: {
+    name: string
+  }
+  response: any
+}) => {
+  const lengthBefore = dogs.length
+  dogs = dogs.filter((dog) => dog.name !== params.name)
+
+  if (dogs.length === lengthBefore) {
+    response.status = 400
+    response.body = { msg: `Cannot find dog ${params.name}` }
+    return
+  }
+
+  response.body = { msg: 'OK' }
+  response.status = 200
+}
+
+//this code is from freecodecamp 
+
+https://flaviocopes.com/page/deno-handbook/
